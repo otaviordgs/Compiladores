@@ -1,14 +1,25 @@
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
-typedef enum { SOMA, SUBTRACAO, INDERTEMINADO, ESPACO, MULTIPLICACAO, DIVISAO, POTENCIA, NUMERO} Token;
+typedef enum { 
+  SOMA,
+  SUBTRACAO,
+  INDERTEMINADO,
+  ESPACO,
+  MULTIPLICACAO,
+  DIVISAO,
+  POTENCIA,
+  NUMERO,
+  RESOLVIDO
+} Token;
 
 typedef struct
 {
 	/* data */
-	char caracter;
+	char caracter[10];
 	Token tipo_char;
 } Valor;
 
@@ -38,17 +49,17 @@ void tokenizar(char *palavra) {
   Valor tokens[tam_palavra];
   
   // enum Token tokens[sizeof(palavra)];
-  bool skipFor = false;
+  int skipFor = 0;
 
   // printf("O tamanho da palavra recebida é: %d\n", tam_palavra);
 
   for (int i = 0; i < tam_palavra; i++) {
     char temp = palavra[i];
     char nextChar = palavra[i + 1];
-    tokens[cont].caracter = temp;
-    printf("O index %d e o seu valor %c\n", i,  tokens[cont].caracter);
+  
 
-    if(skipFor == false){
+    if(skipFor == 0){
+      tokens[cont].caracter[0] = temp;
       if (temp == '+') {
       tokens[cont].tipo_char = SOMA;
       cont++;
@@ -65,7 +76,7 @@ void tokenizar(char *palavra) {
         // printf("Opaa 1\n");
         if(nextChar == '*'){
           tokens[cont].tipo_char = POTENCIA;
-          skipFor = true;
+          skipFor ++;
           // printf("Opaa 2 e cont: %d\n", cont);
         } else {
           tokens[cont].tipo_char = MULTIPLICACAO;
@@ -74,25 +85,33 @@ void tokenizar(char *palavra) {
         cont ++;
       } else if(isNumber(temp)){
           tokens[cont].tipo_char = NUMERO;
+          int posicao_numero = 1;
+          while(isNumber(nextChar) || isPoint(nextChar)){
+            tokens[cont].caracter[posicao_numero] = nextChar;
+            posicao_numero++;
+            nextChar = palavra[posicao_numero];
+          }
+          skipFor = posicao_numero - 1;
+          cont++;
       }
       else {
         tokens[cont].tipo_char = INDERTEMINADO;
         cont++;
       }
     } else{
-      skipFor = false;
+      skipFor --;
       // printf("Skipped on char %c and cont %d\n", temp, cont);
     }
 
     
   }
 
-  printf("O valor do primeiro é %c\n", tokens[0].caracter );
+  // printf("O primeiro numero é %s\n", tokens[0].caracter);
+  double resultado;
   
   // nao sei pq mas a ultima posicão sempre é um sina de mais agr
   // isso aconteceu depois da implemenacao do skipfor
   for (int i = 0; i < tam_palavra; i++) {
-    printf("AHH %c, BB %d\n", tokens[i].caracter, i);
 
     switch (tokens[i].tipo_char) {
     case INDERTEMINADO:
@@ -101,13 +120,14 @@ void tokenizar(char *palavra) {
 
     case SOMA:
       // printf("Soma\n");
-      // printf("O numero anterior é %c e o posterio é %c\n", (tokens[i-1].caracter), (tokens[i+1].caracter));
-      // int resultado = atoi(&tokens[i-1].caracter) + atoi(&tokens[i+1].caracter);
-      printf("O resultado é: %d\n", resultado);
+      resultado = atof(tokens[i-1].caracter) + atof(tokens[i+1].caracter);
+      printf("O resultado é: %f\n", resultado);
       break;
 
     case SUBTRACAO:
-      printf("Subtração\n");
+      // printf("Subtração\n");
+      resultado = atof(tokens[i-1].caracter) - atof(tokens[i+1].caracter);
+      printf("O resultado é: %f\n", resultado);
       break;
 
 		case ESPACO:
@@ -115,19 +135,25 @@ void tokenizar(char *palavra) {
       break;
 
 		case MULTIPLICACAO:
-			printf("Multiplicação\n");
+			// printf("Multiplicação\n");
+      resultado = atof(tokens[i-1].caracter) * atof(tokens[i+1].caracter);
+      printf("O resultado é: %f\n", resultado);
 			break;
 
 		case DIVISAO:
-			printf("Divisão\n");
+			// printf("Divisão\n");
+      resultado = atof(tokens[i-1].caracter) / atof(tokens[i+1].caracter);
+      printf("O resultado é: %f\n", resultado);
 			break;
     
     case POTENCIA:
-			printf("Potência\n");
+			// printf("Potência\n");
+      resultado =  (int) pow(atoi(tokens[i-1].caracter), atoi(tokens[i+1].caracter));
+      printf("O resultado é: %f\n", resultado);
 			break;
     
      case NUMERO:
-			printf("Número\n");
+			// printf("Número\n");
 			break;
 
     default:
@@ -142,13 +168,13 @@ int main( int argc, char *argv[ ]) {
  	char linha[100];
 	int i;	
 
-	// arquivo = fopen(argv[1], "r");
- 	// if (arquivo == NULL)  // Se houve erro na abertura
-  // {
-  //    printf("Erro ao abrir arquivo\n");
-  //    return -1;
+	arquivo = fopen(argv[1], "r");
+ 	if (arquivo == NULL)  // Se houve erro na abertura
+  {
+     printf("Erro ao abrir arquivo\n");
+     return -1;
   }
-  arquivo = f
+  // arquivo = fopen("../teste.txt", "r");
 
 	while(fgets(linha, 100, arquivo)) {
         tokenizar(linha);
